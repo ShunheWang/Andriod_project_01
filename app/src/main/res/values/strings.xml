@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">lingquanlianmeng</string>
+    <string name="home">home</string>
+    <string name="select_text">select</string>
+    <string name="red_packet_text">red_packet</string>
+    <string name="search_text">search</string>
+    <string name="search_tips">搜索你想要的...</string>
 </resources>
