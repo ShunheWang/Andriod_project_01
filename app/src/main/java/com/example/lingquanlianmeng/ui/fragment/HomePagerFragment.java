@@ -3,6 +3,10 @@ package com.example.lingquanlianmeng.ui.fragment;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,8 +21,10 @@ import com.example.lingquanlianmeng.presenter.ICategoryPagerPresenter;
 import com.example.lingquanlianmeng.presenter.impl.CategoryPagerPresenterImpl;
 import com.example.lingquanlianmeng.ui.adapter.HomePagerContentAdpater;
 import com.example.lingquanlianmeng.ui.adapter.LooperPagerAdapter;
+import com.example.lingquanlianmeng.ui.custom.TbNextScrolView;
 import com.example.lingquanlianmeng.utils.Constants;
 import com.example.lingquanlianmeng.utils.LogUtils;
+import com.example.lingquanlianmeng.utils.SizeUtils;
 import com.example.lingquanlianmeng.view.ICategoryPagerCallback;
 
 import java.util.List;
@@ -30,6 +36,7 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
     private ICategoryPagerPresenter mCategoryPagerPresenter;
     private int mMaterialId;
     private HomePagerContentAdpater mContentAdpater;
+    private LooperPagerAdapter mLooperPagerAdapter;
 
     public static HomePagerFragment newInstance(Categories.DataBean category){
         HomePagerFragment homePagerFragment = new HomePagerFragment();
@@ -45,6 +52,26 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
 
     @BindView(R.id.looper_pager)
     public ViewPager mLooperPager;
+
+    @BindView(R.id.home_pager_title)
+    public TextView mCurrentTitleTv;
+
+    @BindView(R.id.looper_point_container)
+    public LinearLayout mlooperPointContainer;
+
+    @BindView(R.id.home_pager_nested_scroller)
+    public TbNextScrolView mHomePagerNestedView;
+
+    @BindView(R.id.home_pager_header_container)
+    public LinearLayout mHomePagerHeaderContainer;
+
+//    @BindView(R.id.home_pager_refresh)
+//    public TwinklingRefreshLayout mhomePagerRefresh;
+
+    @BindView(R.id.home_pager_parent)
+    public LinearLayout mHomePagerParent;
+
+
 
     @Override
     protected int getRootViewResId() {
@@ -67,12 +94,78 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
         mContentAdpater = new HomePagerContentAdpater();
         //set recycle view adapter
         mContentList.setAdapter(mContentAdpater);
-
         //create looper pager adapter
-        LooperPagerAdapter looperPagerAdapter = new LooperPagerAdapter();
+        mLooperPagerAdapter = new LooperPagerAdapter();
         //set looper pager adapter
-        mLooperPager.setAdapter(looperPagerAdapter);
+        mLooperPager.setAdapter(mLooperPagerAdapter);
+        //set refresh
+//        mhomePagerRefresh.setEnableRefresh(false);
+//        mhomePagerRefresh.setEnableLoadmore(true);
 //        setupState(State.SUCCESS);
+    }
+
+    @Override
+    protected void initListener() {
+        //view change observer
+        mHomePagerParent.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                int homePagerContainerHeight = mHomePagerHeaderContainer.getMeasuredHeight();
+                mHomePagerNestedView.setHeaderHeight(homePagerContainerHeight);
+                int measuredHeight = mHomePagerParent.getMeasuredHeight();
+                LogUtils.d(HomePagerFragment.this, "measuredHeight: --> " + measuredHeight);
+                LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) mContentList.getLayoutParams();
+                layoutParams.height = measuredHeight;
+                mContentList.setLayoutParams(layoutParams);
+                if (measuredHeight != 0) {
+                    mHomePagerParent.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+            }
+        });
+
+        //looper listener
+        mLooperPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                int targetPosition = position % mLooperPagerAdapter.getDataBeanSize();
+                //switch point
+                updateLooperIndicator(targetPosition);
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+        //refresh listener
+//        mhomePagerRefresh.setOnRefreshListener(new RefreshListenerAdapter() {
+//            @Override
+//            public void onLoadMore(TwinklingRefreshLayout refreshLayout) {
+//                LogUtils.d(HomePagerFragment.this, "load more ...");
+//                //load more data
+//                if (mCategoryPagerPresenter != null) {
+//                    mCategoryPagerPresenter.loaderMore(mMaterialId);
+//                }
+//            }
+//        });
+
+    }
+
+    private void updateLooperIndicator(int targetPosition) {
+        for (int i = 0; i < mlooperPointContainer.getChildCount(); i++) {
+            View point = mlooperPointContainer.getChildAt(i);
+            if(i == targetPosition){
+                point.setBackgroundResource(R.drawable.shape_indicator_point_selected);
+            }else{
+                point.setBackgroundResource(R.drawable.shape_indicator_point_normal);
+            }
+        }
     }
 
     @Override
@@ -87,10 +180,15 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
         String title = arguments.getString(Constants.KEY_HOME_PAGER_TITLE);
         mMaterialId = arguments.getInt(Constants.KEY_HOME_MATERIAL_ID);
 
-        //加载数据
+        //load data
         LogUtils.d(this, "Title --> "+ title + "materialId --> "+ mMaterialId);
         if (mCategoryPagerPresenter != null) {
             mCategoryPagerPresenter.getContentByCategoryId(mMaterialId);
+        }
+
+        //set title
+        if (mCurrentTitleTv != null) {
+            mCurrentTitleTv.setText(title);
         }
     }
 
@@ -127,22 +225,53 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
 
     @Override
     public void onLoaderMoreError() {
-
+        Toast.makeText(getContext(),"Network Error, please try again", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onLoaderMoreEmpty() {
-
+        Toast.makeText(getContext(),"No extra data load", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * load extra data into relative adapter
+     * @param categoryContents
+     */
     @Override
     public void onLoaderMoreLoaded(List<HomePagerContent.DataBean> categoryContents) {
-
+        mContentAdpater.setExtraData(categoryContents);
+//        if (mhomePagerRefresh != null) {
+//            mhomePagerRefresh.finishLoadmore();
+//        }
     }
 
+    /**
+     * looper view list
+     * @param categoryContents
+     */
     @Override
     public void onLooperListLoaded(List<HomePagerContent.DataBean> categoryContents) {
-
+        mLooperPagerAdapter.setData(categoryContents);
+        //set middle point
+        int dx =(Integer.MAX_VALUE/2) % categoryContents.size();
+        int targetCurrentPosition = (Integer.MAX_VALUE/2) - dx;
+        mLooperPager.setCurrentItem(targetCurrentPosition);
+        mlooperPointContainer.removeAllViews();
+        //add looper points
+        for (int i = 0; i < categoryContents.size(); i++) {
+            View point = new View(getContext());
+            int size = SizeUtils.dip2px(getContext(),8);
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(size, size);
+            layoutParams.leftMargin = SizeUtils.dip2px(getContext(),5);
+            layoutParams.rightMargin = SizeUtils.dip2px(getContext(),5);
+            point.setLayoutParams(layoutParams);
+            if(i == 0 ){
+                point.setBackgroundResource(R.drawable.shape_indicator_point_selected);
+            }else{
+                point.setBackgroundResource(R.drawable.shape_indicator_point_normal);
+            }
+            mlooperPointContainer.addView(point);
+        }
     }
 
     @Override
