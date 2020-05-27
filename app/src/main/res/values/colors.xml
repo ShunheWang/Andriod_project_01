@@ -9,4 +9,5 @@
     <color name="colorNormal">#aaffffff</color>
     <color name="color_tmail">#D0021B</color>
     <color name="color_page_bg">#EFEEEE</color>
+    <color name="select_page_bg">#EFEEEE</color>
 </resources>

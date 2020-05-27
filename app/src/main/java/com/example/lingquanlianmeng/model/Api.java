@@ -2,6 +2,9 @@ package com.example.lingquanlianmeng.model;
 
 import com.example.lingquanlianmeng.model.bean.Categories;
 import com.example.lingquanlianmeng.model.bean.HomePagerContent;
+import com.example.lingquanlianmeng.model.bean.OnSellContent;
+import com.example.lingquanlianmeng.model.bean.SelectedContent;
+import com.example.lingquanlianmeng.model.bean.SelectedPageCategories;
 import com.example.lingquanlianmeng.model.bean.TicketParams;
 import com.example.lingquanlianmeng.model.bean.TicketResult;
 
@@ -21,4 +24,13 @@ public interface Api {
 
     @POST("tpwd")
     Call<TicketResult> getTicket(@Body TicketParams ticketPrams);
+
+    @GET("recommend/categories")
+    Call<SelectedPageCategories> getSelectedPageCategories();
+
+    @GET
+    Call<SelectedContent> getSelectedPageContent(@Url String url);
+
+    @GET
+    Call<OnSellContent> getOnSellPageContent(@Url String url);
 }

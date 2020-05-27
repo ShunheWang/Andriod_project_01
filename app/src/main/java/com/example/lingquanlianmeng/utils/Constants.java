@@ -6,4 +6,6 @@ public class Constants {
     //homePager bunble key
     public static final String KEY_HOME_PAGER_TITLE = "key_home_pager_title";
     public static final String KEY_HOME_MATERIAL_ID = "key_home_pager_materialId";
+
+    public static final int STATE_SUCCESS_CODE = 10000;
 }
