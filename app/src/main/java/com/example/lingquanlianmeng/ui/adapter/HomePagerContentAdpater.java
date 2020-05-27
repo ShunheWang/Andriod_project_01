@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.lingquanlianmeng.R;
 import com.example.lingquanlianmeng.model.bean.HomePagerContent;
-import com.example.lingquanlianmeng.utils.LogUtils;
 import com.example.lingquanlianmeng.utils.UrlUtils;
 
 import java.util.ArrayList;
@@ -24,21 +23,31 @@ import butterknife.ButterKnife;
 
 public class HomePagerContentAdpater extends RecyclerView.Adapter<HomePagerContentAdpater.Innerholder>{
     List<HomePagerContent.DataBean> mData = new ArrayList<>();
+    private OnListenerItemClickListener mItemClickListener;
 
     @NonNull
     @Override
     public Innerholder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_home_pager_content, parent, false);
-        LogUtils.d(HomePagerContentAdpater.this, "onCreateViewHolder: --> " + viewType);
+        //LogUtils.d(HomePagerContentAdpater.this, "onCreateViewHolder: --> " + viewType);
         return new Innerholder(itemView);
     }
 
     @Override
     public void onBindViewHolder(@NonNull Innerholder holder, int position) {
         HomePagerContent.DataBean dataBean = mData.get(position);
-        LogUtils.d(HomePagerContentAdpater.this, "onBindViewHolder: --> " + position);
+        //LogUtils.d(HomePagerContentAdpater.this, "onBindViewHolder: --> " + position);
         //set Data
         holder.setData(dataBean);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mItemClickListener != null){
+                    HomePagerContent.DataBean item = mData.get(position);
+                    mItemClickListener.onItemClick(item);
+                }
+            }
+        });
     }
 
     @Override
@@ -60,6 +69,7 @@ public class HomePagerContentAdpater extends RecyclerView.Adapter<HomePagerConte
         //update UI
         notifyItemRangeChanged(currentSize,mData.size());
     }
+
 
     public class Innerholder extends RecyclerView.ViewHolder {
 
@@ -104,5 +114,13 @@ public class HomePagerContentAdpater extends RecyclerView.Adapter<HomePagerConte
             String coverPath = UrlUtils.getCoverPath(dataBean.getPict_url(), coverSize);
             Glide.with(context).load(coverPath).into(cover);
         }
+    }
+
+    public void setOnListenerItemClickListener(OnListenerItemClickListener listener){
+        this.mItemClickListener = listener;
+    }
+
+    public interface OnListenerItemClickListener{
+        void onItemClick(HomePagerContent.DataBean item);
     }
 }

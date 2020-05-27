@@ -9,4 +9,5 @@
     <string name="goods_off_price_text">save %1$d</string>
     <string name="goods_original_price_text">Old price: %1$s</string>
     <string name="goods_sell_count_text">Purchase: %1$d</string>
+    <string name="text_tao_bao_code">TaoBao code</string>
 </resources>

@@ -1,14 +1,13 @@
 package com.example.lingquanlianmeng.ui.activity;
 
-import android.os.Bundle;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.lingquanlianmeng.R;
+import com.example.lingquanlianmeng.base.BaseActivity;
 import com.example.lingquanlianmeng.base.BaseFragment;
 import com.example.lingquanlianmeng.ui.fragment.HomeFragment;
 import com.example.lingquanlianmeng.ui.fragment.RedPacketFragment;
@@ -17,10 +16,8 @@ import com.example.lingquanlianmeng.ui.fragment.SelectedFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private static final String TAG = "MainActivity";
     @BindView(R.id.main_navigation_bar)
@@ -30,24 +27,27 @@ public class MainActivity extends AppCompatActivity {
     private SelectedFragment mSelectedFragment;
     private SearchFragment mSearchFragment;
     private FragmentManager mFm;
-    private Unbinder mBind;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        mBind = ButterKnife.bind(this);
+    protected void initView() {
         initFragments();
+    }
+
+    @Override
+    protected void initEvent() {
         initListener();
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mBind != null) {
-            mBind.unbind();
-        }
+    protected int getLayoutResId() {
+        return R.layout.activity_main;
     }
+
+    @Override
+    protected void initPresenter() {
+
+    }
+
 
     private void initFragments() {
         mHomeFragment = new HomeFragment();
@@ -81,9 +81,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private BaseFragment lastOneFragment = null;
+
     private void switchFragment(BaseFragment target) {
         FragmentTransaction fragmentTransaction = mFm.beginTransaction();
-        fragmentTransaction.replace(R.id.main_page_container,target);
+
+        if(!target.isAdded()){
+            fragmentTransaction.add(R.id.main_page_container,target);
+        }else{
+            fragmentTransaction.show(target);
+        }
+        if (lastOneFragment != null) {
+            fragmentTransaction.hide(lastOneFragment);
+        }
+        lastOneFragment = target;
+
+        //fragmentTransaction.replace(R.id.main_page_container,target);
         fragmentTransaction.commit();
 
     }

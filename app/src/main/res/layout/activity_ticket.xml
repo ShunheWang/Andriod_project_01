@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@color/colorPrimary">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ticket_back_btn"
+            android:layout_centerVertical="true"
+            android:padding="10dp"
+            android:src="@mipmap/back"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_tao_bao_code"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_marginTop="33dp"
+        android:layout_width="300dp"
+        android:layout_height="300dp">
+
+        <ImageView
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:id="@+id/ticket_cover"
+            android:background="@color/gray" />
+
+        <com.example.lingquanlianmeng.ui.custom.LoadingView
+            android:layout_width="33dp"
+            android:layout_height="33dp"
+            android:id="@+id/cover_loading"
+            android:layout_centerInParent="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ticket_load_retry"
+            android:text="Image Load Error"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:layout_centerInParent="true"/>
+
+    </RelativeLayout>
+
+
+    <EditText
+        android:layout_width="244dp"
+        android:layout_height="44dp"
+        android:id="@+id/ticket_code"
+        android:background="@drawable/shape_ticket_code_box_bg"
+        android:focusable="false"
+        android:textAlignment="center"
+        android:text="AGyx1rXEhhw"
+
+        android:textColor="#4A4A4A"
+        android:layout_marginTop="30dp"/>
+
+    <TextView
+        android:layout_width="142dp"
+        android:layout_height="40dp"
+        android:id="@+id/ticket_btn"
+        android:layout_marginTop="30dp"
+        android:text="Get code"
+        android:textSize="18sp"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:background="@drawable/shape_ticket_button_box_bg" />
+
+
+</LinearLayout>

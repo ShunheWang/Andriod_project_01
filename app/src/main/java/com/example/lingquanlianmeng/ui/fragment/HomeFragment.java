@@ -1,17 +1,22 @@
 package com.example.lingquanlianmeng.ui.fragment;
 
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.lingquanlianmeng.R;
 import com.example.lingquanlianmeng.base.BaseFragment;
 import com.example.lingquanlianmeng.model.bean.Categories;
-import com.example.lingquanlianmeng.presenter.impl.HomePresenterImpl;
+import com.example.lingquanlianmeng.presenter.IHomePresenter;
 import com.example.lingquanlianmeng.ui.adapter.HomePagerAdapter;
+import com.example.lingquanlianmeng.utils.LogUtils;
+import com.example.lingquanlianmeng.utils.PresenterManager;
 import com.example.lingquanlianmeng.view.IHomeCallback;
 import com.google.android.material.tabs.TabLayout;
 
@@ -24,7 +29,7 @@ public class HomeFragment extends BaseFragment implements IHomeCallback {
     @BindView(R.id.home_pager)
     public ViewPager mHomePager;
 
-    private HomePresenterImpl mHomePresenter;
+    private IHomePresenter mHomePresenter;
     private HomePagerAdapter mHomePagerAdapter;
 
     @Override
@@ -50,7 +55,7 @@ public class HomeFragment extends BaseFragment implements IHomeCallback {
     @Override
     protected void initPresenter() {
         //创建presenter
-        mHomePresenter = new HomePresenterImpl();
+        mHomePresenter = PresenterManager.getInstance().getHomePresenter();
         mHomePresenter.registerCallback(this);
     }
 
@@ -99,5 +104,19 @@ public class HomeFragment extends BaseFragment implements IHomeCallback {
         if (mHomePresenter != null) {
             mHomePresenter.getCategories();
         }
+    }
+
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        LogUtils.d(this,"on create view... ");
+        return super.onCreateView(inflater,container,savedInstanceState);
+    }
+
+    @Override
+    public void onDestroy() {
+        LogUtils.d(this,"on destroy view... ");
+        super.onDestroy();
     }
 }

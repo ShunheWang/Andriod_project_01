@@ -1,5 +1,6 @@
 package com.example.lingquanlianmeng.ui.fragment;
 
+import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
@@ -18,20 +19,25 @@ import com.example.lingquanlianmeng.base.BaseFragment;
 import com.example.lingquanlianmeng.model.bean.Categories;
 import com.example.lingquanlianmeng.model.bean.HomePagerContent;
 import com.example.lingquanlianmeng.presenter.ICategoryPagerPresenter;
-import com.example.lingquanlianmeng.presenter.impl.CategoryPagerPresenterImpl;
+import com.example.lingquanlianmeng.presenter.ITicketPresenter;
+import com.example.lingquanlianmeng.ui.activity.TicketActivity;
 import com.example.lingquanlianmeng.ui.adapter.HomePagerContentAdpater;
 import com.example.lingquanlianmeng.ui.adapter.LooperPagerAdapter;
+import com.example.lingquanlianmeng.ui.custom.AutoLooperViewPager;
 import com.example.lingquanlianmeng.ui.custom.TbNextScrolView;
 import com.example.lingquanlianmeng.utils.Constants;
 import com.example.lingquanlianmeng.utils.LogUtils;
+import com.example.lingquanlianmeng.utils.PresenterManager;
 import com.example.lingquanlianmeng.utils.SizeUtils;
 import com.example.lingquanlianmeng.view.ICategoryPagerCallback;
+import com.lcodecore.tkrefreshlayout.RefreshListenerAdapter;
+import com.lcodecore.tkrefreshlayout.TwinklingRefreshLayout;
 
 import java.util.List;
 
 import butterknife.BindView;
 
-public class HomePagerFragment extends BaseFragment implements ICategoryPagerCallback {
+public class HomePagerFragment extends BaseFragment implements ICategoryPagerCallback, HomePagerContentAdpater.OnListenerItemClickListener, LooperPagerAdapter.OnLooperPageItemClickListener {
 
     private ICategoryPagerPresenter mCategoryPagerPresenter;
     private int mMaterialId;
@@ -51,7 +57,7 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
     public RecyclerView mContentList;
 
     @BindView(R.id.looper_pager)
-    public ViewPager mLooperPager;
+    public AutoLooperViewPager mLooperPager;
 
     @BindView(R.id.home_pager_title)
     public TextView mCurrentTitleTv;
@@ -65,8 +71,8 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
     @BindView(R.id.home_pager_header_container)
     public LinearLayout mHomePagerHeaderContainer;
 
-//    @BindView(R.id.home_pager_refresh)
-//    public TwinklingRefreshLayout mhomePagerRefresh;
+    @BindView(R.id.home_pager_refresh)
+    public TwinklingRefreshLayout mhomePagerRefresh;
 
     @BindView(R.id.home_pager_parent)
     public LinearLayout mHomePagerParent;
@@ -99,8 +105,8 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
         //set looper pager adapter
         mLooperPager.setAdapter(mLooperPagerAdapter);
         //set refresh
-//        mhomePagerRefresh.setEnableRefresh(false);
-//        mhomePagerRefresh.setEnableLoadmore(true);
+        mhomePagerRefresh.setEnableRefresh(false);
+        mhomePagerRefresh.setEnableLoadmore(true);
 //        setupState(State.SUCCESS);
     }
 
@@ -113,7 +119,7 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
                 int homePagerContainerHeight = mHomePagerHeaderContainer.getMeasuredHeight();
                 mHomePagerNestedView.setHeaderHeight(homePagerContainerHeight);
                 int measuredHeight = mHomePagerParent.getMeasuredHeight();
-                LogUtils.d(HomePagerFragment.this, "measuredHeight: --> " + measuredHeight);
+                //LogUtils.d(HomePagerFragment.this, "measuredHeight: --> " + measuredHeight);
                 LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) mContentList.getLayoutParams();
                 layoutParams.height = measuredHeight;
                 mContentList.setLayoutParams(layoutParams);
@@ -132,10 +138,11 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
 
             @Override
             public void onPageSelected(int position) {
-                int targetPosition = position % mLooperPagerAdapter.getDataBeanSize();
-                //switch point
-                updateLooperIndicator(targetPosition);
-
+                if (mLooperPagerAdapter.getDataBeanSize() != 0) {
+                    int targetPosition = position % mLooperPagerAdapter.getDataBeanSize();
+                    //switch point
+                    updateLooperIndicator(targetPosition);
+                }
             }
 
             @Override
@@ -143,18 +150,21 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
 
             }
         });
-        //refresh listener
-//        mhomePagerRefresh.setOnRefreshListener(new RefreshListenerAdapter() {
-//            @Override
-//            public void onLoadMore(TwinklingRefreshLayout refreshLayout) {
-//                LogUtils.d(HomePagerFragment.this, "load more ...");
-//                //load more data
-//                if (mCategoryPagerPresenter != null) {
-//                    mCategoryPagerPresenter.loaderMore(mMaterialId);
-//                }
-//            }
-//        });
 
+        //refresh listener
+        mhomePagerRefresh.setOnRefreshListener(new RefreshListenerAdapter() {
+            @Override
+            public void onLoadMore(TwinklingRefreshLayout refreshLayout) {
+                LogUtils.d(HomePagerFragment.this, "load more ...");
+                //load more data
+                if (mCategoryPagerPresenter != null) {
+                    mCategoryPagerPresenter.loaderMore(mMaterialId);
+                }
+            }
+        });
+
+        mContentAdpater.setOnListenerItemClickListener(this);
+        mLooperPagerAdapter.setOnLooperPageItemClickListener(this);
     }
 
     private void updateLooperIndicator(int targetPosition) {
@@ -170,7 +180,7 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
 
     @Override
     protected void initPresenter() {
-        mCategoryPagerPresenter = CategoryPagerPresenterImpl.getInstance();
+        mCategoryPagerPresenter = PresenterManager.getInstance().getCategoryPagerPresenter();
         mCategoryPagerPresenter.registerCallback(this);
     }
 
@@ -181,7 +191,7 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
         mMaterialId = arguments.getInt(Constants.KEY_HOME_MATERIAL_ID);
 
         //load data
-        LogUtils.d(this, "Title --> "+ title + "materialId --> "+ mMaterialId);
+//        LogUtils.d(this, "Title --> "+ title + "materialId --> "+ mMaterialId);
         if (mCategoryPagerPresenter != null) {
             mCategoryPagerPresenter.getContentByCategoryId(mMaterialId);
         }
@@ -210,7 +220,20 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
     @Override
     public void onNetworkError() {
         setupState(State.ERROR);
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        //start auto loop
+        mLooperPager.startLoop();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        //start auto loop
+        mLooperPager.stopLoop();
     }
 
     @Override
@@ -240,9 +263,10 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
     @Override
     public void onLoaderMoreLoaded(List<HomePagerContent.DataBean> categoryContents) {
         mContentAdpater.setExtraData(categoryContents);
-//        if (mhomePagerRefresh != null) {
-//            mhomePagerRefresh.finishLoadmore();
-//        }
+        if (mhomePagerRefresh != null) {
+            mhomePagerRefresh.finishLoadmore();
+        }
+        Toast.makeText(getContext(), "loaded " + categoryContents.size(), Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -279,5 +303,33 @@ public class HomePagerFragment extends BaseFragment implements ICategoryPagerCal
         if (mCategoryPagerPresenter !=null) {
             mCategoryPagerPresenter.unregisterCallback(this);
         }
+    }
+
+    @Override
+    public void onItemClick(HomePagerContent.DataBean item) {
+        //clicked list data
+        LogUtils.d(HomePagerFragment.this, "recycle view data: --> " + item.getTitle());
+        handleItemClick(item);
+    }
+
+    /**
+     * switch to ticket page
+     * @param item
+     */
+    private void handleItemClick(HomePagerContent.DataBean item) {
+        //handle data
+        String title = item.getTitle();
+        String url = item.getClick_url();
+        String cover = item.getPict_url();
+        ITicketPresenter ticketPresenter = PresenterManager.getInstance().getTicketPresenter();
+        ticketPresenter.getTicket(title,url,cover);
+        startActivity(new Intent(getContext(), TicketActivity.class));
+    }
+
+    @Override
+    public void onLooperItemClick(HomePagerContent.DataBean item) {
+        //clicked list data
+        LogUtils.d(HomePagerFragment.this, "looper view data: --> " + item.getTitle());
+        handleItemClick(item);
     }
 }

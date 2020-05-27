@@ -3,6 +3,7 @@ package com.example.lingquanlianmeng.presenter.impl;
 import com.example.lingquanlianmeng.model.Api;
 import com.example.lingquanlianmeng.model.bean.HomePagerContent;
 import com.example.lingquanlianmeng.presenter.ICategoryPagerPresenter;
+import com.example.lingquanlianmeng.utils.LogUtils;
 import com.example.lingquanlianmeng.utils.RetrofitManager;
 import com.example.lingquanlianmeng.utils.UrlUtils;
 import com.example.lingquanlianmeng.view.ICategoryPagerCallback;
@@ -25,20 +26,6 @@ public class CategoryPagerPresenterImpl implements ICategoryPagerPresenter {
 
     public static final int DEFAULT_PAGE = 1;
     private Integer mCurrentPageId;
-
-    private CategoryPagerPresenterImpl(){
-
-    }
-
-    private static ICategoryPagerPresenter sInstance = null;
-
-    public static ICategoryPagerPresenter getInstance(){
-        if (sInstance == null) {
-            sInstance = new CategoryPagerPresenterImpl();
-        }
-        return sInstance;
-    }
-
 
     @Override
     public void getContentByCategoryId(int categoryId) {
@@ -124,6 +111,8 @@ public class CategoryPagerPresenterImpl implements ICategoryPagerPresenter {
      */
     @Override
     public void loaderMore(int categoryId) {
+        LogUtils.d(CategoryPagerPresenterImpl.this,"CategoryPagerPresenterImpl");
+        LogUtils.d(CategoryPagerPresenterImpl.this," categoryId --> " + categoryId);
         //get current page
         mCurrentPageId = pagesInfo.get(categoryId);
         //page++
@@ -131,6 +120,7 @@ public class CategoryPagerPresenterImpl implements ICategoryPagerPresenter {
             mCurrentPageId = 1;
         }
         mCurrentPageId++;
+        LogUtils.d(CategoryPagerPresenterImpl.this," mCurrentPageId --> " + mCurrentPageId);
         //load more data
         Call<HomePagerContent> task = createTask(categoryId, mCurrentPageId);
         //handle extra data result
@@ -160,6 +150,8 @@ public class CategoryPagerPresenterImpl implements ICategoryPagerPresenter {
                 if (result == null || result.getData().size() == 0) {
                     callback.onLoaderMoreEmpty();
                 }else{
+                    pagesInfo.put(categoryId, mCurrentPageId);
+                    LogUtils.d(CategoryPagerPresenterImpl.this,"size --> " + result.getData().size());
                     callback.onLoaderMoreLoaded(result.getData());
                 }
             }
